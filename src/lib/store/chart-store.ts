@@ -51,13 +51,18 @@ export const INDICATOR_COLORS: Record<IndicatorKey, string> = {
 
 export const DEFAULT_WATCHLIST = [
   // Índices
-  "SPX",
-  "NDX",
-  "DJI",
+  "SP500",
+  "NQ",
+  "DOW",
   "DAX",
+  "FTSE100"
   // Forex
   "EUR/USD",
   "GBP/USD",
+  "USD/JPI"
+  // Comodity
+  "XAU/USD"
+  "XAG/USD"
   // Crypto
   "BTCUSDT",
   "ETHUSDT",
