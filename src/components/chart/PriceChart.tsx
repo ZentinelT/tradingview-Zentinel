@@ -14,6 +14,7 @@ import {
 } from "lightweight-charts";
 import { fetchKlines } from "@/lib/binance/rest";
 import { getBinanceWS } from "@/lib/binance/ws";
+import { fetchTDKlines, isTwelveDataSymbol } from "@/lib/twelvedata/rest";
 import { ema, rsi, macd } from "@/lib/indicators";
 import type { Candle, Timeframe } from "@/lib/binance/types";
 import {
@@ -628,87 +629,109 @@ export function PriceChart({ symbol, timeframe }: Props) {
   useEffect(() => {
     let unsub: (() => void) | null = null;
     let cancelled = false;
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
+    const isTD = isTwelveDataSymbol(symbol);
+
+    function applyCandles(klines: Candle[]) {
+      candlesRef.current = klines;
+      if (candleSeriesRef.current) {
+        candleSeriesRef.current.setData(
+          klines.map((k) => ({
+            time: k.time as UTCTimestamp,
+            open: k.open,
+            high: k.high,
+            low: k.low,
+            close: k.close,
+          })),
+        );
+      }
+      if (volumeSeriesRef.current) {
+        volumeSeriesRef.current.setData(
+          klines.map((k) => ({
+            time: k.time as UTCTimestamp,
+            value: k.volume,
+            color: k.close >= k.open ? `${TV_COLORS.green}66` : `${TV_COLORS.red}66`,
+          })),
+        );
+      }
+      updateEMAs();
+      updateRSI();
+      updateMACD();
+      chartRef.current?.timeScale().fitContent();
+      requestAnimationFrame(() => recomputePaneOffsets());
+
+      if (klines.length > 0) {
+        const last = klines[klines.length - 1];
+        const prev = klines[klines.length - 2] ?? last;
+        setLastPrice({
+          value: last.close,
+          pct: prev.close === 0 ? 0 : ((last.close - prev.close) / prev.close) * 100,
+        });
+      }
+    }
 
     async function load() {
       try {
-        const klines = await fetchKlines(symbol, timeframe, 1000);
-        if (cancelled) return;
-        candlesRef.current = klines;
-        if (candleSeriesRef.current) {
-          candleSeriesRef.current.setData(
-            klines.map((k) => ({
-              time: k.time as UTCTimestamp,
-              open: k.open,
-              high: k.high,
-              low: k.low,
-              close: k.close,
-            })),
-          );
-        }
-        if (volumeSeriesRef.current) {
-          volumeSeriesRef.current.setData(
-            klines.map((k) => ({
-              time: k.time as UTCTimestamp,
-              value: k.volume,
-              color: k.close >= k.open ? `${TV_COLORS.green}66` : `${TV_COLORS.red}66`,
-            })),
-          );
-        }
-        updateEMAs();
-        updateRSI();
-        updateMACD();
-        chartRef.current?.timeScale().fitContent();
-        requestAnimationFrame(() => recomputePaneOffsets());
+        if (isTD) {
+          // Twelve Data path — REST only, poll every 60s
+          const klines = await fetchTDKlines(symbol, timeframe, 500);
+          if (cancelled) return;
+          applyCandles(klines);
 
-        if (klines.length > 0) {
-          const last = klines[klines.length - 1];
-          const prev = klines[klines.length - 2] ?? last;
-          setLastPrice({
-            value: last.close,
-            pct: prev.close === 0 ? 0 : ((last.close - prev.close) / prev.close) * 100,
+          // Poll every 60 seconds to refresh the last candle
+          pollInterval = setInterval(async () => {
+            try {
+              const fresh = await fetchTDKlines(symbol, timeframe, 500);
+              if (!cancelled) applyCandles(fresh);
+            } catch {}
+          }, 60_000);
+        } else {
+          // Binance path — REST + WebSocket
+          const klines = await fetchKlines(symbol, timeframe, 1000);
+          if (cancelled) return;
+          applyCandles(klines);
+
+          const ws = getBinanceWS();
+          unsub = ws.subscribeKline({
+            symbol,
+            interval: timeframe,
+            onCandle: (k) => {
+              if (!candleSeriesRef.current) return;
+              const arr = candlesRef.current;
+              const lastCandle = arr[arr.length - 1];
+              if (lastCandle && lastCandle.time === k.time) {
+                arr[arr.length - 1] = k;
+              } else if (!lastCandle || k.time > lastCandle.time) {
+                arr.push(k);
+                if (arr.length > 2000) arr.shift();
+              } else {
+                return;
+              }
+              candleSeriesRef.current.update({
+                time: k.time as UTCTimestamp,
+                open: k.open,
+                high: k.high,
+                low: k.low,
+                close: k.close,
+              });
+              if (volumeSeriesRef.current) {
+                volumeSeriesRef.current.update({
+                  time: k.time as UTCTimestamp,
+                  value: k.volume,
+                  color: k.close >= k.open ? `${TV_COLORS.green}66` : `${TV_COLORS.red}66`,
+                });
+              }
+              updateEMAs();
+              updateRSI();
+              updateMACD();
+              const prev = arr[arr.length - 2] ?? lastCandle;
+              setLastPrice({
+                value: k.close,
+                pct: prev && prev.close !== 0 ? ((k.close - prev.close) / prev.close) * 100 : 0,
+              });
+            },
           });
         }
-
-        const ws = getBinanceWS();
-        unsub = ws.subscribeKline({
-          symbol,
-          interval: timeframe,
-          onCandle: (k) => {
-            if (!candleSeriesRef.current) return;
-            const arr = candlesRef.current;
-            const lastCandle = arr[arr.length - 1];
-            if (lastCandle && lastCandle.time === k.time) {
-              arr[arr.length - 1] = k;
-            } else if (!lastCandle || k.time > lastCandle.time) {
-              arr.push(k);
-              if (arr.length > 2000) arr.shift();
-            } else {
-              return;
-            }
-            candleSeriesRef.current.update({
-              time: k.time as UTCTimestamp,
-              open: k.open,
-              high: k.high,
-              low: k.low,
-              close: k.close,
-            });
-            if (volumeSeriesRef.current) {
-              volumeSeriesRef.current.update({
-                time: k.time as UTCTimestamp,
-                value: k.volume,
-                color: k.close >= k.open ? `${TV_COLORS.green}66` : `${TV_COLORS.red}66`,
-              });
-            }
-            updateEMAs();
-            updateRSI();
-            updateMACD();
-            const prev = arr[arr.length - 2] ?? lastCandle;
-            setLastPrice({
-              value: k.close,
-              pct: prev && prev.close !== 0 ? ((k.close - prev.close) / prev.close) * 100 : 0,
-            });
-          },
-        });
       } catch (e) {
         console.error("Failed to load chart data:", e);
       }
@@ -719,6 +742,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
     return () => {
       cancelled = true;
       if (unsub) unsub();
+      if (pollInterval) clearInterval(pollInterval);
     };
   }, [symbol, timeframe]);
 
@@ -797,7 +821,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
             <span className="text-tv-text-muted">·</span>
             <span className="uppercase text-tv-text-muted">{timeframe}</span>
             <span className="text-tv-text-muted">·</span>
-            <span className="text-tv-text-muted">Binance</span>
+            <span className="text-tv-text-muted">{isTwelveDataSymbol(symbol) ? "Twelve Data" : "Binance"}</span>
           </div>
           {hover && (
             <div className="flex items-center gap-x-3 text-[11px]">
