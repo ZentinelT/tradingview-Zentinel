@@ -6,8 +6,11 @@ const API_KEY = "2451433d5f6a414f821726ddb5970b62";
 // Map Binance-style timeframes to Twelve Data intervals
 const TF_MAP: Record<string, string> = {
   "1m": "1min",
+  "2m": "2min",
+  "3m": "3min",
   "5m": "5min",
   "15m": "15min",
+  "30m": "30min",
   "1h": "1h",
   "4h": "4h",
   "1d": "1day",
@@ -17,12 +20,11 @@ const TF_MAP: Record<string, string> = {
 // These symbols come from Twelve Data (indices/forex), not Binance
 export const TD_SYMBOLS: Record<string, string> = {
   // Indices
-  SPX: "S&P 500",
-  NDX: "Nasdaq 100",
-  DJI: "Dow Jones",
-  DAX: "DAX",
-  FTSE: "FTSE 100",
-  NKY: "Nikkei 225",
+  "SPX500USD": "S&P 500",
+  "NDAQ": "Nasdaq 100",
+  "DJI": "Dow Jones",
+  "DAX": "DAX",
+  "FTSE100": "FTSE 100",
   // Forex
   "EUR/USD": "EUR/USD",
   "GBP/USD": "GBP/USD",
