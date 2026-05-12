@@ -50,16 +50,20 @@ export const INDICATOR_COLORS: Record<IndicatorKey, string> = {
 };
 
 export const DEFAULT_WATCHLIST = [
+  // Índices
+  "SPX",
+  "NDX",
+  "DJI",
+  "DAX",
+  // Forex
+  "EUR/USD",
+  "GBP/USD",
+  // Crypto
   "BTCUSDT",
   "ETHUSDT",
   "SOLUSDT",
   "BNBUSDT",
   "XRPUSDT",
-  "DOGEUSDT",
-  "ADAUSDT",
-  "AVAXUSDT",
-  "LINKUSDT",
-  "MATICUSDT",
 ];
 
 interface ChartState {
