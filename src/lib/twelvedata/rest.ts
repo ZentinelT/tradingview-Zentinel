@@ -6,7 +6,6 @@ const API_KEY = "2451433d5f6a414f821726ddb5970b62";
 // Map Binance-style timeframes to Twelve Data intervals
 const TF_MAP: Record<string, string> = {
   "1m": "1min",
-  "2m": "2min",
   "3m": "3min",
   "5m": "5min",
   "15m": "15min",
