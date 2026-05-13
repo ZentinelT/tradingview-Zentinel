@@ -58,7 +58,7 @@ const TV_COLORS = {
   border: "#787b86",
   text: "#d1d4dc",
   textMuted: "#787b86",
-  green: "#26a69a",
+  green: "#4caf50",
   red: "#787b86",
   blue: "#2962ff",
   yellow: "#ffb74d",
