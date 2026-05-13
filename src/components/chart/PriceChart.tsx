@@ -193,7 +193,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
       downColor: TV_COLORS.red,
       borderUpColor: "#ffffff",
       borderDownColor: "#ffffff",
-      wickUpColor: TV_COLORS.green,
+      wickUpColor: TV_COLORS.red,
       wickDownColor: TV_COLORS.red,
       priceLineColor: TV_COLORS.textMuted,
       priceLineStyle: 2,
