@@ -191,8 +191,8 @@ export function PriceChart({ symbol, timeframe }: Props) {
     candleSeriesRef.current = chart.addSeries(CandlestickSeries, {
       upColor: TV_COLORS.green,
       downColor: TV_COLORS.red,
-      borderUpColor: TV_COLORS.green,
-      borderDownColor: TV_COLORS.red,
+      borderUpColor: "#ffffff",
+      borderDownColor: "#ffffff",
       wickUpColor: TV_COLORS.green,
       wickDownColor: TV_COLORS.red,
       priceLineColor: TV_COLORS.textMuted,
