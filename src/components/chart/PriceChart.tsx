@@ -21,6 +21,7 @@ import {
   INDICATOR_COLORS,
   useChartStore,
   type IndicatorKey,
+  type TimezoneValue,
 } from "@/lib/store/chart-store";
 import { formatPrice, formatVolume } from "@/lib/format";
 import { IndicatorPill } from "./IndicatorPill";
@@ -112,6 +113,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
   const indicators = useChartStore((s) => s.indicators);
   const hidden = useChartStore((s) => s.hidden);
   const config = useChartStore((s) => s.config);
+  const timezone = useChartStore((s) => s.timezone);
   const tool = useChartStore((s) => s.tool);
   const priceLines = useChartStore((s) => s.priceLines);
   const addPriceLine = useChartStore((s) => s.addPriceLine);
@@ -183,6 +185,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
         secondsVisible: false,
         rightOffset: 12,
         barSpacing: 8,
+        timezone: "UTC",
       },
       autoSize: true,
     });
@@ -527,6 +530,11 @@ export function PriceChart({ symbol, timeframe }: Props) {
       }
     }
   }, [priceLines, symbol]);
+
+  // Sync timezone to chart timeScale
+  useEffect(() => {
+    chartRef.current?.applyOptions({ timeScale: { timezone } });
+  }, [timezone]);
 
   // Cursor style when drawing tools are active + reset measure on tool change
   useEffect(() => {
