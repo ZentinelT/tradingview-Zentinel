@@ -27,7 +27,7 @@ export function Header() {
         <TimezoneSelector />
       </div>
       <div className="flex items-center gap-2">
-        
+         <a 
           href="https://github.com"
           target="_blank"
           rel="noopener noreferrer"
