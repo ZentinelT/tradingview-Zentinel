@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { fetchTickers24h } from "@/lib/binance/rest";
 import { getBinanceWS } from "@/lib/binance/ws";
+import { isTwelveDataSymbol, fetchTDQuote } from "@/lib/twelvedata/rest";
 import { useChartStore } from "@/lib/store/chart-store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatPrice, formatPct } from "@/lib/format";
@@ -28,23 +29,35 @@ export function Watchlist() {
     if (watchlist.length === 0) return;
     let cancelled = false;
 
-    fetchTickers24h(watchlist)
-      .then((tickers) => {
-        if (cancelled) return;
-        const map: Record<string, Row> = {};
-        tickers.forEach((t) => {
-          map[t.symbol] = {
-            symbol: t.symbol,
-            price: t.lastPrice,
-            pct: t.priceChangePercent,
-          };
-        });
-        setRows(map);
-      })
-      .catch(console.error);
+    const binanceSymbols = watchlist.filter((s) => !isTwelveDataSymbol(s));
+    const tdSymbols = watchlist.filter((s) => isTwelveDataSymbol(s));
+
+    // Fetch Binance tickers
+    if (binanceSymbols.length > 0) {
+      fetchTickers24h(binanceSymbols)
+        .then((tickers) => {
+          if (cancelled) return;
+          const map: Record<string, Row> = {};
+          tickers.forEach((t) => {
+            map[t.symbol] = { symbol: t.symbol, price: t.lastPrice, pct: t.priceChangePercent };
+          });
+          setRows((prev) => ({ ...prev, ...map }));
+        })
+        .catch(console.error);
+    }
+
+    // Fetch Twelve Data quotes
+    tdSymbols.forEach((s) => {
+      fetchTDQuote(s)
+        .then((q) => {
+          if (cancelled || !q) return;
+          setRows((prev) => ({ ...prev, [s]: { symbol: s, price: q.price, pct: q.pct } }));
+        })
+        .catch(console.error);
+    });
 
     const ws = getBinanceWS();
-    const unsub = ws.subscribeMiniTickers(watchlist, (tick) => {
+    const unsub = binanceSymbols.length > 0 ? ws.subscribeMiniTickers(binanceSymbols, (tick) => {
       setRows((prev) => {
         const prevRow = prev[tick.symbol];
         if (prevRow) {
@@ -73,7 +86,7 @@ export function Watchlist() {
           },
         };
       });
-    });
+    }) : () => {};
 
     return () => {
       cancelled = true;
@@ -119,9 +132,11 @@ export function Watchlist() {
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-tv-text">
-                    {s.replace("USDT", "")}
+                    {isTwelveDataSymbol(s) ? s : s.replace("USDT", "")}
                   </span>
-                  <span className="text-[10px] text-tv-text-dim">USDT</span>
+                  {!isTwelveDataSymbol(s) && (
+                    <span className="text-[10px] text-tv-text-dim">USDT</span>
+                  )}
                 </div>
                 <span
                   className={cn(
