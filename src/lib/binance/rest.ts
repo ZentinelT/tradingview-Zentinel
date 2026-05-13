@@ -12,7 +12,7 @@ export async function fetchKlines(
   if (!res.ok) throw new Error(`klines ${res.status}`);
   const data = (await res.json()) as unknown[][];
   return data.map((k) => ({
-    time: Math.floor((k[0] as number) / 1000),
+    time: Math.floor((k[0] as number) / 1000) - (4 * 60 * 60),
     open: parseFloat(k[1] as string),
     high: parseFloat(k[2] as string),
     low: parseFloat(k[3] as string),
