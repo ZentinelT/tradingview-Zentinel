@@ -19,19 +19,18 @@ const TF_MAP: Record<string, string> = {
 
 // These symbols come from Twelve Data (indices/forex), not Binance
 export const TD_SYMBOLS: Record<string, string> = {
-  // Indices
-  "SPX500USD": "S&P 500",
-  "NDAQ": "Nasdaq 100",
-  "DJI": "Dow Jones",
-  "DAX": "DAX",
-  "FTSE100": "FTSE 100",
+  // Índices (ETFs equivalentes - plan gratis)
+  "SPY": "S&P 500",
+  "QQQ": "Nasdaq 100",
+  "DIA": "Dow Jones",
+  "EWG": "DAX",
+  "EWU": "FTSE 100",
   // Forex
   "EUR/USD": "EUR/USD",
   "GBP/USD": "GBP/USD",
   "USD/JPY": "USD/JPY",
   "AUD/USD": "AUD/USD",
   "USD/CAD": "USD/CAD",
-  "USD/MXN": "USD/MXN",
   // Commodities
   "XAU/USD": "Gold",
   "XAG/USD": "Silver",
