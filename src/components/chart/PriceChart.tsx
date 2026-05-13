@@ -185,7 +185,6 @@ export function PriceChart({ symbol, timeframe }: Props) {
         secondsVisible: false,
         rightOffset: 12,
         barSpacing: 8,
-        timezone: "UTC",
       },
       autoSize: true,
     });
@@ -531,10 +530,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
     }
   }, [priceLines, symbol]);
 
-  // Sync timezone to chart timeScale
-  useEffect(() => {
-    chartRef.current?.applyOptions({ timeScale: { timezone } });
-  }, [timezone]);
+ 
 
   // Cursor style when drawing tools are active + reset measure on tool change
   useEffect(() => {
