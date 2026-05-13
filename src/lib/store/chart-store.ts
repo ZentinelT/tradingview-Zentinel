@@ -14,6 +14,24 @@ export type IndicatorKey =
 
 export type DrawingTool = "cursor" | "hline" | "measure" | "eraser";
 
+export const TIMEZONES = [
+  { label: "UTC",              value: "UTC" },
+  { label: "New York (ET)",    value: "America/New_York" },
+  { label: "Chicago (CT)",     value: "America/Chicago" },
+  { label: "Los Angeles (PT)", value: "America/Los_Angeles" },
+  { label: "São Paulo",        value: "America/Sao_Paulo" },
+  { label: "Córdoba / Buenos Aires", value: "America/Argentina/Cordoba" },
+  { label: "London (GMT/BST)", value: "Europe/London" },
+  { label: "Frankfurt (CET)",  value: "Europe/Berlin" },
+  { label: "Dubai (GST)",      value: "Asia/Dubai" },
+  { label: "Mumbai (IST)",     value: "Asia/Kolkata" },
+  { label: "Singapore (SGT)",  value: "Asia/Singapore" },
+  { label: "Tokyo (JST)",      value: "Asia/Tokyo" },
+  { label: "Sydney (AEST)",    value: "Australia/Sydney" },
+] as const;
+
+export type TimezoneValue = typeof TIMEZONES[number]["value"];
+
 export interface PriceLine {
   id: string;
   symbol: string;
@@ -82,6 +100,8 @@ interface ChartState {
   config: IndicatorConfig;
   watchlist: string[];
 
+  timezone: TimezoneValue;
+
   // Ephemeral UI state (not persisted)
   tool: DrawingTool;
   priceLines: PriceLine[];
@@ -90,6 +110,7 @@ interface ChartState {
   settingsTarget: IndicatorKey | null;
 
   // Actions
+  setTimezone: (tz: TimezoneValue) => void;
   setSymbol: (s: string) => void;
   setTimeframe: (t: Timeframe) => void;
   toggleIndicator: (key: IndicatorKey) => void;
@@ -110,6 +131,7 @@ export const useChartStore = create<ChartState>()(
     (set) => ({
       symbol: "BTCUSDT",
       timeframe: "15m" as Timeframe,
+      timezone: "UTC" as TimezoneValue,
       indicators: {
         ema20: true,
         ema50: true,
@@ -133,6 +155,7 @@ export const useChartStore = create<ChartState>()(
       symbolDialogOpen: false,
       settingsTarget: null,
 
+      setTimezone: (timezone) => set({ timezone }),
       setSymbol: (symbol) => set({ symbol }),
       setTimeframe: (timeframe) => set({ timeframe }),
       toggleIndicator: (key) =>
@@ -191,6 +214,7 @@ export const useChartStore = create<ChartState>()(
       partialize: (s) => ({
         symbol: s.symbol,
         timeframe: s.timeframe,
+        timezone: s.timezone,
         indicators: s.indicators,
         hidden: s.hidden,
         config: s.config,
