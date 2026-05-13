@@ -55,7 +55,7 @@ interface Props {
 const TV_COLORS = {
   bg: "#131722",
   panel: "#1e222d",
-  border: "#2a2e39",
+  border: "#e0e0e0",
   text: "#d1d4dc",
   textMuted: "#787b86",
   green: "#26a69a",
