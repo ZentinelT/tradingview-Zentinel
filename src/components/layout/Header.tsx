@@ -1,11 +1,10 @@
 "use client";
-
 import { Code2, Zap } from "lucide-react";
 import { SymbolSelector } from "@/components/chart/SymbolSelector";
 import { TimeframeSelector } from "@/components/chart/TimeframeSelector";
 import { IndicatorMenu } from "@/components/chart/IndicatorMenu";
+import { TimezoneSelector } from "@/components/chart/TimezoneSelector";
 import { Separator } from "@/components/ui/separator";
-
 export function Header() {
   return (
     <header className="flex h-12 items-center justify-between border-b border-tv-border bg-tv-panel px-3">
@@ -24,10 +23,11 @@ export function Header() {
         <TimeframeSelector />
         <Separator orientation="vertical" className="mx-1 h-6 bg-tv-border" />
         <IndicatorMenu />
+        <Separator orientation="vertical" className="mx-1 h-6 bg-tv-border" />
+        <TimezoneSelector />
       </div>
-
       <div className="flex items-center gap-2">
-        <a
+        
           href="https://github.com"
           target="_blank"
           rel="noopener noreferrer"
