@@ -3,6 +3,22 @@ import type { Candle, Timeframe } from "@/lib/binance/types";
 const BASE = "https://api.twelvedata.com";
 const API_KEY = "2451433d5f6a414f821726ddb5970b62";
 
+/** Returns NY offset in seconds (UTC-4 EDT or UTC-5 EST) */
+function nyOffsetSeconds(utcMs: number): number {
+  const d = new Date(utcMs);
+  const year = d.getUTCFullYear();
+  const edtStart = new Date(Date.UTC(year, 2, 8));
+  edtStart.setUTCDate(8 + ((7 - edtStart.getUTCDay()) % 7));
+  const estStart = new Date(Date.UTC(year, 10, 1));
+  estStart.setUTCDate(1 + ((7 - estStart.getUTCDay()) % 7));
+  const isEDT = d >= edtStart && d < estStart;
+  return isEDT ? -4 * 3600 : -5 * 3600;
+}
+
+function toNYTimestamp(utcMs: number): number {
+  return Math.floor(utcMs / 1000) + nyOffsetSeconds(utcMs);
+}
+
 // Map Binance-style timeframes to Twelve Data intervals
 const TF_MAP: Record<string, string> = {
   "1m": "1min",
@@ -55,7 +71,7 @@ export async function fetchTDKlines(
   const values: Array<{ datetime: string; open: string; high: string; low: string; close: string; volume?: string }> =
     data.values ?? [];
   return values.reverse().map((v) => ({
-    time: Math.floor(new Date(v.datetime).getTime() / 1000),
+    time: toNYTimestamp(new Date(v.datetime).getTime()),
     open: parseFloat(v.open),
     high: parseFloat(v.high),
     low: parseFloat(v.low),
