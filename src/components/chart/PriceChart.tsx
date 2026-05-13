@@ -113,7 +113,6 @@ export function PriceChart({ symbol, timeframe }: Props) {
   const indicators = useChartStore((s) => s.indicators);
   const hidden = useChartStore((s) => s.hidden);
   const config = useChartStore((s) => s.config);
-  const timezone = useChartStore((s) => s.timezone);
   const tool = useChartStore((s) => s.tool);
   const priceLines = useChartStore((s) => s.priceLines);
   const addPriceLine = useChartStore((s) => s.addPriceLine);
